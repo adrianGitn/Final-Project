@@ -1,10 +1,19 @@
 #include <iostream>
 #include <string>
+#include <fstream>
+#include <sstream>
+
 using namespace std;
 #include "cache.h"
+#include "trie.cpp"
 
 int main() {
     const string filename = "world_cities.csv";
+    NameTrie trie;
+    //enters every entry into trie
+    ifstream file(filename);
+
+    trie.csvTrie(filename,trie);
 
     string cityName;
     string countryCode;
@@ -38,16 +47,16 @@ int main() {
             cout << "Country code: " << countryCode << endl;
             cout << "Population: "  <<  pop << endl;
         }
-        //searches through file if not found
+        //searches through trie if not found
         else {
-            pop = searchCityInCSV(filename, countryCode, cityName);
-            if (pop != -1) {
-                cout << "Found in file." << endl;
+            double triePop = trie.trieSearch(countryCode,cityName);
+            if (triePop != -1) {
+                cout << "Found in trie." << endl;
                 cout << "City: " << cityName << endl;
                 cout << "Country code: " << countryCode << endl;
-                cout << "Population: "  <<  pop << endl;
+                cout << "Population: "  <<  triePop << endl;
                 // add to cache
-                cache->add({countryCode, cityName, pop});
+                cache->add({countryCode, cityName, triePop});
             } else
             {
                 cout << "City not found. Please check spelling and try again." << endl;
