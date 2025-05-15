@@ -1,0 +1,5 @@
+Cache Structure, Cache Uses, Time(microseconds)
+LRU,39,75881.6
+LFU,135,50805.6
+FIFO,36,57118.8
+Random,155,85502.8

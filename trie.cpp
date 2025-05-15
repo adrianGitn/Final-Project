@@ -1,56 +1,37 @@
 #include <iostream>
 #include <unordered_map>
 #include <string>
+#include "trie.h"
 
 using namespace std;
 
-struct CityData {
-    string countryCode;
-    int population;
-};
 
-struct TrieNode {
-    bool isEndOfWord;
-    unordered_map<char, TrieNode*> children;
-    vector<CityData> cityData; //for repeats
 
-    TrieNode() : isEndOfWord(false) {}
-};
 
-class NameTrie {
-private:
-    TrieNode* root;
+NameTrie::NameTrie() : root(new TrieNode()) {}
 
-public:
-    NameTrie() {
-        root = new TrieNode();
-    }
 
-    void insert(const string& name, const string& countryCode, int population) {
-        TrieNode* node = root;
-        for (char c : name) {
-            c = tolower(c); // Case-insensitive
-            if (node->children.count(c) == 0) {
-                node->children[c] = new TrieNode();
-            }
-
-            node = node->children[c];
+void NameTrie::insert(const std::string& name, const std::string& countryCode, int population) {
+    TrieNode* node = root;
+    for (char c : name) {
+        c = tolower(c); // Case-insensitive
+        if (node->children.count(c) == 0) {
+            node->children[c] = new TrieNode();
         }
-        node->isEndOfWord = true;
-
-
-
-        node->cityData.push_back({countryCode, population});
+        node = node->children[c];
     }
+    node->isEndOfWord = true;
+    node->cityData.push_back({countryCode, population});
+}
 
-    int trieSearch(const string& name,const string& countryCode) {
-        TrieNode* node = root;
-        for (char c : name) {
-            c = tolower(c);
-            if (node->children.count(c) == 0)
-                return -1;
-            node = node->children[c];
-        }
+int NameTrie::trieSearch(const string& name,const string& countryCode) {
+    TrieNode* node = root;
+    for (char c : name) {
+        c = tolower(c);
+        if (node->children.count(c) == 0)
+            return -1;
+        node = node->children[c];
+    }
 
         //returns the correct
         if (node->isEndOfWord) {
@@ -64,7 +45,7 @@ public:
         return -1;
     }
 
-    void printTrie(TrieNode* node = nullptr, string prefix = "", string indent = "") {
+    void NameTrie::printTrie(TrieNode* node, string prefix, string indent) {
         if (!node) node = root;
         if (node->isEndOfWord)
             cout << indent << "'" << prefix << "' (END)" << endl;
@@ -73,7 +54,7 @@ public:
         }
     }
 
-    void csvTrie(const string& filename, NameTrie& trie) {
+    void NameTrie::csvTrie(const string& filename, NameTrie& trie) {
         ifstream file(filename);
         if (!file.is_open()) {
             cerr << "Error opening file: " << filename << endl;
@@ -100,5 +81,26 @@ public:
         }
     }
 
+std::vector<std::pair<std::string, std::string>> NameTrie::getAllCities() const {
+    std::vector<std::pair<std::string, std::string>> cities;
+    std::function<void(TrieNode*, std::string)> collect;
 
-};
+    collect = [&](TrieNode* node, std::string prefix) {
+        if (!node) return;
+
+        if (node->isEndOfWord) {
+            for (const auto& data : node->cityData) {
+                // Changed order: cityName first, then countryCode
+                cities.emplace_back(prefix, data.countryCode);
+            }
+        }
+
+        for (const auto& child : node->children) {
+            collect(child.second, prefix + child.first);
+        }
+    };
+
+    collect(root, "");
+    return cities;
+}
+

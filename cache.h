@@ -19,7 +19,6 @@ public:
     virtual void add(const city& city) = 0;
 };
 
-// Forward declarations
 class LRUcache;
 class LFUcache;
 class FIFOcache;
